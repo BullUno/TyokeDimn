@@ -1,0 +1,9 @@
+{
+  "terminal.integrated.env.windows": {
+    "PATH": "G:/Desk Folder桌面文件夹/Codex/共享依赖库/pnpm;G:/Desk Folder桌面文件夹/Codex/共享依赖库/VS code/Microsoft VS Code/bin;${env:PATH}"
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "files.encoding": "utf8",
+  "editor.tabSize": 2,
+  "git.ignoreLimitWarning": true
+}

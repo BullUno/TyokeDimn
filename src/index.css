@@ -1,0 +1,497 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mestain — hero 姓名使用的手写脚本字体（Letterhend Studio，个人使用授权） */
+@font-face {
+  font-family: "Mestain";
+  src: url("../fonts/mestain.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 得意黑 2.0（Smiley Sans 2.0，OFL-1.1）— 「中」「欢迎联络」与页脚各类小标题共用；
+   unicode-range 限定所需字形，浏览器按需下载 */
+@font-face {
+  font-family: "DeYiHei";
+  src: url("../fonts/deyihei-v2.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+4E2D, U+5C0F, U+7EA2, U+4E66, U+6296, U+97F3, U+60A8, U+7684,
+    U+540D, U+5B57, U+90AE, U+7BB1, U+7559, U+8A00, U+7AD9, U+53D1, U+9001,
+    U+6B22, U+8FCE, U+8054, U+7EDC;
+}
+
+@layer base {
+  :root {
+    --bg: 0 0% 4%;
+    --surface: 0 0% 8%;
+    --text: 199 21% 87.1%; /* #d9e0e3：全站文字主色（头部栏另有覆盖保持白色） */
+    --muted: 0 0% 53%;
+    --stroke: 0 0% 12%;
+    --accent: 0 0% 96%;
+  }
+
+  html {
+    background: hsl(var(--bg));
+    /* 固定滚动条槽位：加载页面隐藏滚动条时视口宽度不变，避免退出时内容左移 */
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-bg text-text-primary font-body antialiased;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: rgba(78, 133, 191, 0.45);
+    color: hsl(var(--text));
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--bg));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--stroke));
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted));
+  }
+}
+
+@layer utilities {
+  .accent-gradient {
+    background-image: linear-gradient(90deg, #89aacc 0%, #4e85bf 100%);
+  }
+
+  /* Logo ring — gradient direction reverses on hover */
+  .logo-ring {
+    background-image: linear-gradient(90deg, #89aacc 0%, #4e85bf 100%);
+    background-size: 200% 200%;
+    background-position: 0% 50%;
+    transition: background-position 0.7s ease;
+  }
+  .logo-ring:hover {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes scroll-down {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+@keyframes role-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-scroll-down {
+  animation: scroll-down 1.5s ease-in-out infinite;
+}
+
+/* ── 加载页像素翻转（纯 CSS：仅 transform/opacity，逐像素 transition-delay 由合成器执行） ── */
+.rv-stage {
+  position: absolute;
+  inset: 0;
+  perspective: 900px;
+}
+
+.rv-pixel {
+  position: absolute;
+  overflow: hidden;
+  opacity: 0;
+  background-color: #030712;
+  border-radius: 10px; /* 方块圆角 10px */
+  transform: scale(0.35) rotateX(10deg);
+  transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 380ms ease-out;
+  transition-delay: var(--d, 0ms);
+  will-change: transform, opacity; /* 只合成 transform + opacity，主线程不参与 */
+}
+
+.rv-stage.is-open .rv-pixel {
+  opacity: 1;
+  /* 终态缩放 1.09：10px 圆角方块轻微重叠，交界缺口随动画收尾同步闭合（无残留白点） */
+  transform: scale(1.09) rotateX(0deg);
+}
+
+/* 中心字样：唯一静态锚点（top:40% + translateY(-50%)）—— HELLO/WELCOME 同点互叠，
+   位置永不移动、无任何 JS 测量/重定位；HELLO 从首帧起固定显示，离场随整页帘幕一起扫走 */
+.rv-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40%;
+  transform: translateY(-50%);
+  z-index: 5; /* 提升到像素网格（3D 合成层）之上，保证描边始终可见 */
+  pointer-events: none;
+}
+
+/* 白态 HELLO（深描边 #030712）：动画开始时淡出，换成 WELCOME（仅 opacity，合成器执行） */
+.rv-hello {
+  opacity: 1;
+  transition: opacity 450ms ease-out 100ms;
+}
+
+.rv-welcome {
+  opacity: 0;
+  transition: opacity 650ms ease-out 150ms;
+}
+
+.rv-stage.is-open .rv-hello {
+  opacity: 0;
+}
+
+.rv-stage.is-open .rv-welcome {
+  opacity: 1;
+}
+
+/* 翻转完成：立即（非过渡）切换为纯深色最终态 */
+.rv-stage.is-done .rv-cover-face {
+  background-color: #030712;
+}
+
+.rv-stage.is-done .rv-grid {
+  visibility: hidden;
+}
+
+/* ── 退场帘幕：整页（含 WELCOME）视为一张图片，蒙版渐变带自下而上扫过（与 hero 入场同步）。
+      翻转梯度 + size 200%；position 0%→200%：图片整体滑出视口（区域外 = 全透明），
+      末端无残带，WELCOME 与黑色页面一同完全消失 ── */
+.rv-exit {
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, transparent 15%, #000 55%, #000 100%);
+  mask-image: linear-gradient(to top, transparent 0%, transparent 15%, #000 55%, #000 100%);
+  -webkit-mask-size: 100% 200%;
+  mask-size: 100% 200%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 0% 0%;
+  mask-position: 0% 0%;
+  transition:
+    mask-position 850ms cubic-bezier(0.4, 0, 0.2, 1),
+    -webkit-mask-position 850ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: mask-position;
+}
+
+.rv-exit.is-exiting {
+  -webkit-mask-position: 0% 200%;
+  mask-position: 0% 200%;
+}
+
+.animate-role-fade-in {
+  animation: role-fade-in 0.4s ease-out;
+}
+
+/* ── 卡片磨砂玻璃质感（配合 BorderGlow 半透明背景使用） ── */
+.glass-frost {
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+}
+
+/* ── 背景层上下渐隐蒙版：顶部/底部按 --fade-top / --fade-bottom 渐入渐出 ── */
+.mask-fade-v {
+  --fade-top: 10%;
+  --fade-bottom: 10%;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black var(--fade-top),
+    black calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black var(--fade-top),
+    black calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+}
+
+/* ── 禁止复制区域（关于/首屏/页脚等）：文字不可选中，鼠标保持正常状态；
+      表单输入框例外：仍可编辑并显示文本光标 ── */
+.no-copy {
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+.no-copy input,
+.no-copy textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+
+/* ── 留言卡片「发送」按钮动画：绿色波浪填充 + 文字渐隐 + ✔ 打勾笔顺 ── */
+
+/* 波浪层：从按钮底部直接上升填充（仅点击后 .on 出现；终态 = 绿色填满整个按钮）
+   动画属性统一 transform（translateY），不动 height */
+.send-wave {
+  position: absolute;
+  inset: 0;
+  background: #34d399;
+  pointer-events: none;
+  z-index: 0;
+  transform: translateY(100%);
+}
+.send-wave.on {
+  animation: send-wave-rise 0.8s cubic-bezier(0.35, 0, 0.35, 1) 0.05s forwards;
+}
+@keyframes send-wave-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* 「发送」文字渐隐 */
+.send-label {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+}
+.send-label.out {
+  animation: send-label-kf 0.26s ease-out 0.3s forwards;
+}
+@keyframes send-label-kf {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ✔ 对勾：两段笔顺（点 → 下 45° → 右上 45°）；pathLength=1 归一化：任何长度完整描画 */
+.send-check {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+.send-check.on {
+  opacity: 1;
+}
+.send-check path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.send-check.on .seg1 {
+  animation: check-seg1 0.22s ease-out 0.5s forwards;
+}
+.send-check.on .seg2 {
+  animation: check-seg2 0.3s cubic-bezier(0.3, 0.6, 0.4, 1) 0.72s forwards;
+}
+@keyframes check-seg1 {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes check-seg2 {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ── 摄像页编号数字（参考图风格）：空心描边；白色动画带滑过时（hover）填充 #6a82aa ── */
+.jnum {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 2px #d9e0e3;
+  transition:
+    color 0.3s ease,
+    -webkit-text-stroke-color 0.3s ease;
+}
+
+.group:hover .jnum {
+  color: #6a82aa;
+  -webkit-text-stroke-color: #6a82aa;
+}
+
+/* ── 灯箱双图层：交叉淡入只用 opacity（0.2s），绝对定位铺满容器，独立合成层 ── */
+.lb-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  will-change: opacity;
+  pointer-events: none;
+}
+
+.lb-layer.on {
+  opacity: 1;
+}
+
+/* ── 预览弹窗全屏磨砂玻璃：高强度模糊 + 提饱和 + 均匀玻璃微白膜 ── */
+.frost-overlay {
+  -webkit-backdrop-filter: blur(36px) saturate(1.5);
+  backdrop-filter: blur(36px) saturate(1.5);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Hero → 摄影页 分段滑动：原生滚动 + scroll-snap（不劫持事件、无逐帧 JS） ── */
+html {
+  scroll-snap-type: y proximity;
+}
+
+#home,
+#work {
+  scroll-snap-align: start;
+}
+
+/* ── 标题「Tyoke Dimn」描边（强化版）：1.5px 描边勾勒字形 + 三层柔光晕化。
+       1px 紧贴层负责把抗锯齿台阶填平（弱化锯齿的主力），
+       3px / 8px 层把边缘晕开成柔和过渡，整体呈微发光质感 ── */
+.hero-title-outline {
+  -webkit-text-stroke: 1.5px rgba(240, 246, 250, 0.9);
+  text-shadow:
+    0 0 1px rgba(217, 224, 227, 0.85),
+    0 0 3px rgba(217, 224, 227, 0.5),
+    0 0 8px rgba(217, 224, 227, 0.22);
+}
+
+/* 导航栏阴影：scroll-driven（滚动 80→220px 渐显下落阴影，替代 JS scroll 监听） */
+.nav-shell {
+  /* 头部栏文字保持白色（不随全站 --text 变色） */
+  --text: 0 0% 96%;
+  animation: nav-shadow-kf linear both;
+  animation-timeline: scroll(root);
+  animation-range: 80px 220px;
+}
+
+@keyframes nav-shadow-kf {
+  from {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 0 0 rgba(0, 0, 0, 0),
+      0 0 0 0 rgba(0, 0, 0, 0);
+  }
+  to {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Hero 滚动指示器：随 hero 滚出视口淡出（view-timeline 驱动，无 JS 读 scrollY） */
+#home {
+  view-timeline-name: --hero-view;
+  view-timeline-axis: block;
+}
+
+.hero-cue {
+  animation: hero-cue-kf linear both;
+  animation-timeline: --hero-view;
+  animation-range: cover 0% cover 12%;
+}
+
+@keyframes hero-cue-kf {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Works 滚动指示器：作品区进入/离开视口时显隐（view-timeline 驱动） */
+#work {
+  view-timeline-name: --work-view;
+  view-timeline-axis: block;
+}
+
+.works-cue {
+  animation: work-cue-kf linear both;
+  animation-timeline: --work-view;
+  animation-range: cover 0% cover 100%;
+}
+
+@keyframes work-cue-kf {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ── 头部栏点击反馈：白色光点扩散 + 文字下沉（文字颜色保持不变） ── */
+.nav-fb {
+  position: relative;
+  overflow: hidden;
+  --rx: 50%;
+  --ry: 50%;
+  cursor: pointer;
+}
+
+/* 白色光点：中心 100% 不透明度 → 四周 0，从点击点向外扩散并淡出 */
+.nav-fb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--rx) var(--ry), rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 62%);
+  opacity: 0;
+  transform: scale(0.35);
+  pointer-events: none;
+}
+
+.nav-fb-press.nav-fb::before {
+  animation: nav-ripple-out 0.55s ease-out forwards;
+}
+
+@keyframes nav-ripple-out {
+  0% {
+    opacity: 1;
+    transform: scale(0.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+/* 文字层：按压时下沉，颜色不改变 */
+.nav-fb-text {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  transition: transform 0.12s ease;
+}
+
+.nav-fb-press .nav-fb-text {
+  transform: translateY(2px); /* 下沉感 */
+  transition: transform 0.08s ease;
+}
