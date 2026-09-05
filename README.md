@@ -1,4 +1,4 @@
-# Portfolio Cosmic — Michael Smith
+# 本项目是根据这位大神的项目所动的：Portfolio Cosmic — Michael Smith
 
 单页暗黑风格作品集落地页（"Portfolio Cosmic" 模板复刻），
 基于 React + Vite + Tailwind CSS + TypeScript + GSAP + Framer Motion + hls.js。
