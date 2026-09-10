@@ -1,0 +1,9 @@
+node_modules/
+dist/
+tmp/
+.pnpm-store/
+.vite/
+shots/
+node_modules.pnpm.bak/
+依赖库/
+debug.log
