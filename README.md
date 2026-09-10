@@ -47,3 +47,4 @@ pnpm preview
 作品与日志图片为现有暗调占位素材，直接替换 `public/assets` 或
 `src/data.ts` 中的路径即可换成真实作品图。HLS 视频源在 `src/data.ts` 的
 `HLS_URL` 中。
+The project is currently hosted on Netlify.The visiting address is ： https://tyokedimn.netlify.app
