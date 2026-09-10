@@ -2,6 +2,7 @@
 
 ###  本项目是根据这位大神的项目所动的：Portfolio Cosmic — Michael Smith
 Vibe coding LLM：Deepseek-V4-Flash-Vision-Exp（MAX）
+
 基于 React + Vite + Tailwind CSS + TypeScript + GSAP + Framer Motion + hls.js。
 
 ## 功能
